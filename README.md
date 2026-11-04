@@ -25,7 +25,7 @@ OmenAuto talks to the laptop BIOS through Windows' own WMI interface (the same p
 1. Download or clone this repository into a folder you will keep, for example `C:\Users\<you>\OmenAuto`.
 2. Double-click **`Kur.cmd`** and accept the administrator prompt.
 
-`Kur.cmd` creates a Windows Task Scheduler task called **OmenAuto**. It starts hidden, with administrator rights, every time you sign in, so you will not see a UAC prompt on every boot.
+`Kur.cmd` creates a Windows Task Scheduler task called **OmenAuto**. It starts hidden, with administrator rights, every time you sign in and every time the laptop wakes from sleep, so you will not see a UAC prompt on every boot. If it ever stops, Windows restarts it after one minute.
 
 > Do not move the folder after installing. If you do, run `Kur.cmd` again.
 
@@ -35,7 +35,7 @@ OmenAuto talks to the laptop BIOS through Windows' own WMI interface (the same p
 |---|---|
 | `OmenAuto.ps1` | The main script. Watches for games and sets the mode, GPU power and fans. |
 | `HpBios.ps1` | Helper functions that send commands to the HP BIOS over WMI. |
-| `Kur.cmd` | Installs OmenAuto (creates the scheduled task). |
+| `Kur.cmd` / `Kur.ps1` | Installs OmenAuto (creates the scheduled task). |
 | `Kaldir.cmd` | Stops OmenAuto and removes the scheduled task. |
 | `Yeniden-Baslat.cmd` | Restarts OmenAuto after you change a setting. |
 | `Durum.cmd` / `Durum.ps1` | Read-only sensor test. Writes temperatures, fan speeds and GPU power to `Durum.txt`. |
@@ -68,7 +68,7 @@ Double-click **`Kaldir.cmd`**, then delete the folder.
 ## Notes
 
 - OMEN Gaming Hub's mode screen does **not** read the real BIOS mode. It only shows the last mode you picked inside the app, so it may say "Default" while OmenAuto has set Performance.
-- If OMEN Gaming Hub or an HP service changes the mode, OmenAuto applies the right mode again within one minute.
+- If OMEN Gaming Hub or an HP service changes the mode, OmenAuto applies the right mode again within one minute. After waking from sleep it applies it immediately.
 - The overhead is very small: one process list check every 5 seconds and one `nvidia-smi` call while gaming.
 
 ## Credits & license
@@ -105,7 +105,7 @@ OmenAuto laptopun BIOS'una Windows'un kendi WMI arayüzüyle bağlanır (OMEN Ga
 1. Bu depoyu kalıcı olarak tutacağın bir klasöre indir ya da klonla, örneğin `C:\Users\<kullanıcı>\OmenAuto`.
 2. **`Kur.cmd`**'ye çift tıkla ve yönetici izni penceresinde **Evet** de.
 
-`Kur.cmd`, Windows Görev Zamanlayıcı'da **OmenAuto** adında bir görev oluşturur. Bu görev her oturum açışında gizli olarak ve yönetici yetkisiyle başlar. Böylece her açılışta izin penceresi görmezsin.
+`Kur.cmd`, Windows Görev Zamanlayıcı'da **OmenAuto** adında bir görev oluşturur. Bu görev her oturum açışında ve laptop uykudan her uyandığında gizli olarak ve yönetici yetkisiyle başlar. Böylece her açılışta izin penceresi görmezsin. Bir sebeple durursa Windows onu bir dakika sonra yeniden başlatır.
 
 > Kurulumdan sonra klasörü taşıma. Taşırsan `Kur.cmd`'yi yeniden çalıştır.
 
@@ -115,7 +115,7 @@ OmenAuto laptopun BIOS'una Windows'un kendi WMI arayüzüyle bağlanır (OMEN Ga
 |---|---|
 | `OmenAuto.ps1` | Ana betik. Oyunları izler, modu, ekran kartı gücünü ve fanları ayarlar. |
 | `HpBios.ps1` | HP BIOS'una WMI üzerinden komut gönderen yardımcı fonksiyonlar. |
-| `Kur.cmd` | OmenAuto'yu kurar (zamanlanmış görevi oluşturur). |
+| `Kur.cmd` / `Kur.ps1` | OmenAuto'yu kurar (zamanlanmış görevi oluşturur). |
 | `Kaldir.cmd` | OmenAuto'yu durdurur ve zamanlanmış görevi siler. |
 | `Yeniden-Baslat.cmd` | Bir ayarı değiştirdikten sonra OmenAuto'yu yeniden başlatır. |
 | `Durum.cmd` / `Durum.ps1` | Sadece okuma yapan sensör testi. Sıcaklıkları, fan hızlarını ve ekran kartı gücünü `Durum.txt`'ye yazar. |
@@ -148,7 +148,7 @@ Yukarıdaki değerler tek bir laptopta ölçüldü. Yeni modellerde (Thermal Pol
 ## Notlar
 
 - OMEN Gaming Hub'daki mod ekranı BIOS'taki gerçek modu **okumaz**. Sadece uygulamanın içinde en son seçtiğin modu gösterir. Bu yüzden OmenAuto Performance'ı ayarlamışken orada "Default" yazabilir.
-- OMEN Gaming Hub ya da bir HP servisi modu değiştirirse, OmenAuto bir dakika içinde doğru modu yeniden uygular.
+- OMEN Gaming Hub ya da bir HP servisi modu değiştirirse, OmenAuto bir dakika içinde doğru modu yeniden uygular. Uykudan uyanınca da hemen uygular.
 - Sisteme yükü çok küçüktür: her 5 saniyede bir açık programlara bakar, oyun sırasında da bir kez `nvidia-smi` çağırır.
 
 ## Teşekkür ve lisans

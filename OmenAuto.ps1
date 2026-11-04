@@ -133,10 +133,20 @@ try { $script:MaxFanOn = [bool](Get-HpMaxFan) } catch {}
 
 $current   = $null
 $reapplyAt = (Get-Date).AddSeconds($ReapplySeconds)
+$lastTick  = Get-Date
 
 while ($true) {
     $game   = Get-RunningGame
     $wanted = if ($game) { 'Performance' } else { 'Quiet' }
+
+    # Dongu arasinda 30 sn'den fazla gecmisse bilgisayar uykudan/hazirda beklemeden uyanmistir:
+    # BIOS modu sifirlamis olabilir, hemen yeniden uygula.
+    $now = Get-Date
+    if (($now - $lastTick).TotalSeconds -gt 30 -and $current) {
+        Write-Log "Uykudan uyanma algilandi."
+        $current = $null
+    }
+    $lastTick = $now
 
     if ($wanted -ne $current) {
         if ($game) { Write-Log "Oyun algilandi: $game" } else { Write-Log "Oyun yok." }
