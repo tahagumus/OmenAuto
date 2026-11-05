@@ -14,4 +14,5 @@ Instructions for Claude Code in this repository. The shared project guide for al
   ```
   No output means the files are clean.
 - User-facing text (log lines, `echo` messages) is Turkish without diacritics. Code comments may be Turkish or English. Keep the style of the surrounding code.
+- When you touch log lines in `OmenAuto.ps1`, check `OmenTray.ps1` too (hard rule 9 in `AGENTS.md`): the icon depends on the `Profil:` and `Oyun algilandi:` lines.
 - Keep `README.md` bilingual: the full English section first, then the full Turkish section. Do not interleave the two languages line by line.

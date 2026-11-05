@@ -16,9 +16,10 @@ It talks to the laptop BIOS directly through HP's WMI interface (`root\wmi`, cla
 | File | Role |
 |---|---|
 | `OmenAuto.ps1` | Main watcher loop. Detects games, applies profiles, controls fans, re-applies after sleep. All user settings are at the top of this file. |
+| `OmenTray.ps1` | Notification-area (tray) status icon. Read-only, runs without admin rights. Parses the last `Profil:` line of `OmenAuto.log` and checks the `Global\OmenAutoWatcher` mutex to see whether the watcher is alive. |
 | `HpBios.ps1` | Thin wrapper around the HP WMI BIOS call (`Invoke-HpBios`) plus small read/write helpers. Dot-sourced by the other scripts. |
-| `Kur.cmd` / `Kur.ps1` | Installer. Registers the `OmenAuto` scheduled task (at logon + on wake from sleep, highest privileges, auto-restart). |
-| `Kaldir.cmd` | Uninstaller. Removes the scheduled task and stops the watcher. |
+| `Kur.cmd` / `Kur.ps1` | Installer. Registers the `OmenAuto` scheduled task (at logon + on wake from sleep, highest privileges, auto-restart) and the `OmenAutoTray` task (at logon, limited rights). |
+| `Kaldir.cmd` | Uninstaller. Removes both scheduled tasks and stops the watcher and the icon. |
 | `Yeniden-Baslat.cmd` | Restarts the watcher after a settings change. |
 | `Durum.cmd` / `Durum.ps1` | Read-only sensor test. Writes temperatures, fan levels and GPU power to `Durum.txt`. |
 | `README.md` | User documentation, English first and then Turkish. |
@@ -72,7 +73,10 @@ Other models (especially thermal policy version 1) may need different values. Do
 6. **Fail safe.** Every BIOS or WMI call in the watcher loop must be inside `try/catch` and log to `OmenAuto.log` through `Write-Log`. The loop must never exit because of a single failed call.
 7. **Single instance.** The watcher holds the `Global\OmenAutoWatcher` mutex. Keep that, and keep the scheduled task's `MultipleInstances IgnoreNew`.
 8. **Keep it light.** The loop runs every 5 seconds forever. Do not add anything that noticeably uses CPU, disk or network.
-9. **Never commit runtime files:** `*.log`, `Durum.txt`, or any personal paths, user names or e-mail addresses.
+9. **The log format is an interface.** `OmenTray.ps1` parses `yyyy-MM-dd HH:mm:ss  Profil: <Quiet|Performance> ...` and `Oyun algilandi: <process name>`. If you change these log lines in `OmenAuto.ps1`, update the parser in `OmenTray.ps1` in the same commit.
+10. **No visible windows.** Scheduled tasks start PowerShell as `conhost.exe --headless powershell.exe ... -WindowStyle Hidden`. Plain `powershell.exe -WindowStyle Hidden` leaves an empty window in Alt+Tab when Windows Terminal is the default terminal on Windows 11, so do not go back to it.
+11. **The tray icon stays read-only and unelevated.** It must never send BIOS commands or need administrator rights. Restarting the watcher goes through `Yeniden-Baslat.cmd`, which asks for elevation itself. A tray icon is not an overlay: it lives in the taskbar, never on top of a game.
+12. **Never commit runtime files:** `*.log`, `Durum.txt`, or any personal paths, user names or e-mail addresses.
 
 ## Testing
 
@@ -83,6 +87,7 @@ There is no automated test suite. The scripts can only run on real HP hardware w
   $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content .\OmenAuto.ps1 -Raw), [ref]$null)
   ```
 - **On the laptop:** run `Durum.cmd` (read-only) to confirm sensor and BIOS reads, then `Yeniden-Baslat.cmd`, and check `OmenAuto.log` for `Profil: ... (mod kodu 0, gpu kodu 0)`.
+- **Tray icon:** after `Kur.cmd`, check that no "Administrator" window is listed in Alt+Tab and that the dot next to the clock is blue (red while a game runs, grey after `Kaldir.cmd` or when the watcher is stopped).
 - When you cannot run on hardware, say so clearly in the pull request and list what still needs a manual check.
 
 ## Making changes
