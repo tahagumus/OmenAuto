@@ -1,0 +1,4 @@
+# Windows scripts are stored exactly as written (CRLF) - no line-ending conversion
+*.ps1 -text diff
+*.cmd -text diff
+*.bat -text diff
