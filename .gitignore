@@ -1,2 +1,5 @@
 *.log
 Durum.txt
+# Bilgisayara ozel durum dosyalari
+CpuBoost.txt
+CpuNormal.txt

@@ -3,6 +3,7 @@
 #
 #  - Oyun yokken : Quiet modu, tam hiz fan kapali, GPU gucu orijinal ayarinda.
 #  - Oyun acikken: Performance modu, GPU gucu maksimum.
+#                  Istege bagli: islemci hizlandirma (varsayilan KAPALI, CpuBoost-Ac.cmd ile acilir).
 #                  Ekran karti sicakligi $FanOnTemp'i gecerse fanlar tam hiza cikar,
 #                  $FanOffTemp'in altina inince normale (otomatik) doner.
 #
@@ -47,6 +48,14 @@ $FanOffTemp = 72   # bu sicaklik ve altinda fanlar tekrar otomatik
 # Oyunda ekran kartina maksimum guc verilsin mi (Custom TGP + AI Boost)
 $GpuMaxInGame = $true
 
+# Istege bagli: oyunda islemci ayarlari (Windows guc plani, sadece prize takiliyken gecerli degerler):
+# hiz artirma Agresif, en dusuk durum %100, core parking kapali. Oyun kapaninca eski degerlere doner.
+# Ac/kapa: CpuBoost-Ac.cmd / CpuBoost-Kapat.cmd
+# (CpuBoost.txt dosyasinda 1 = acik, 0 = kapali; dosya yoksa KAPALI sayilir)
+$CpuBoostFile = Join-Path $PSScriptRoot 'CpuBoost.txt'
+$CpuNormalFile = Join-Path $PSScriptRoot 'CpuNormal.txt'
+$CpuGameValues = [ordered]@{ 'PERFBOOSTMODE' = 2; 'PROCTHROTTLEMIN' = 100; 'CPMINCORES' = 100 }
+
 $CheckIntervalSeconds = 5
 $ReapplySeconds       = 60     # mod her dakika yeniden uygulanir (OMEN/HP servisi ezerse diye)
 
@@ -70,6 +79,45 @@ function Write-Log([string]$msg) {
 # Oyun disindaki GPU guc ayari (bu laptopta olculen varsayilan: Custom TGP kapali, AI Boost acik)
 $script:GpuOriginal = [byte[]](0, 1, 1, 0)
 
+# ---- Islemci (Windows guc plani) ayarlari ----
+function Get-CpuAcValue([string]$alias) {
+    $txt = powercfg /qh SCHEME_CURRENT SUB_PROCESSOR $alias 2>$null | Out-String
+    $hex = [regex]::Matches($txt, '0x[0-9a-fA-F]{8}') | ForEach-Object { $_.Value }
+    if ($hex.Count -lt 2) { return $null }
+    return [Convert]::ToInt32($hex[$hex.Count - 2], 16)   # sondan ikinci = AC, son = DC
+}
+
+function Get-CpuBoostEnabled {
+    try { if (Test-Path $CpuBoostFile) { return ((Get-Content $CpuBoostFile -Raw).Trim() -eq '1') } } catch {}
+    return $false
+}
+
+# Normal (oyun disi) islemci degerlerini bir kez kaydet; sonra hep bu dosyadan geri yukle
+function Initialize-CpuNormal {
+    if (Test-Path $CpuNormalFile) { return }
+    $lines = foreach ($k in $CpuGameValues.Keys) { "$k=$(Get-CpuAcValue $k)" }
+    Set-Content -Path $CpuNormalFile -Value $lines
+}
+
+function Set-CpuProfile([bool]$game) {
+    try {
+        Initialize-CpuNormal
+        if ($game) {
+            foreach ($k in $CpuGameValues.Keys) { powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR $k $CpuGameValues[$k] | Out-Null }
+        } else {
+            foreach ($line in Get-Content $CpuNormalFile) {
+                $k, $v = $line -split '=', 2
+                if ($v -match '^\d+$') { powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR $k ([int]$v) | Out-Null }
+            }
+        }
+        powercfg /setactive SCHEME_CURRENT | Out-Null
+        return $(if ($game) { 'oyun' } else { 'normal' })
+    } catch {
+        Write-Log "HATA (islemci ayari): $($_.Exception.Message)"
+        return 'hata'
+    }
+}
+
 function Set-Profile([ValidateSet('Quiet', 'Performance')] [string]$target, [switch]$NoLog) {
     try {
         $rc1 = Set-HpFanMode $ModeValue[$target]
@@ -80,7 +128,19 @@ function Set-Profile([ValidateSet('Quiet', 'Performance')] [string]$target, [swi
         }
         if ($target -eq 'Quiet') { Set-HpMaxFan $false | Out-Null; $script:MaxFanOn = $false }
         elseif ($script:MaxFanOn) { Set-HpMaxFan $true | Out-Null }
-        if (-not $NoLog) { Write-Log "Profil: $target (mod kodu $rc1, gpu kodu $rc2)" }
+        $cpu = 'dokunulmadi'
+        if (-not $NoLog) {
+            # Islemci ayari sadece profil degisince uygulanir (her dakika degil).
+            # Hizlandirma kapaliysa ve hic acilmamissa (CpuNormal.txt yok) guc planina hic dokunulmaz.
+            if (Get-CpuBoostEnabled) {
+                $cpu = Set-CpuProfile ($target -eq 'Performance')
+            } elseif (Test-Path $CpuNormalFile) {
+                $cpu = Set-CpuProfile $false
+            } else {
+                $cpu = 'kapali'
+            }
+            Write-Log "Profil: $target (mod kodu $rc1, gpu kodu $rc2, islemci $cpu)"
+        }
         return $true
     } catch {
         Write-Log "HATA: $($_.Exception.Message)"
