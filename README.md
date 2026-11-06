@@ -5,8 +5,9 @@ Automatic performance and fan control for HP Victus / OMEN laptops on Windows �
 - **No game running:** Quiet mode, fans on auto, GPU at normal power.
 - **Game running:** Performance mode and maximum GPU power (Custom TGP + AI Boost).
 - **Smart fans in game:** when the GPU reaches 80 °C the fans go to full speed, and below 72 °C they go back to auto.
+- **Optional CPU boost in game** (off by default): turns on Windows power plan settings that keep the CPU at full speed while a game runs.
 - Switches within about 5 seconds when a game opens or closes.
-- **Status icon next to the clock:** blue = Quiet, red = Performance, grey = OmenAuto is not running. Hover over it to see the mode and the game.
+- **Status icon next to the clock:** shows the GPU temperature inside a coloured dot (blue = Quiet, red = Performance, grey = OmenAuto is not running). Hover over it to see the mode and the game.
 - Runs completely hidden: no PowerShell window on the taskbar or in Alt+Tab.
 
 OmenAuto talks to the laptop BIOS through Windows' own WMI interface (the same path OMEN Gaming Hub uses). It does **not** load any kernel driver, does not touch game memory, and does not draw on screen.
@@ -44,6 +45,7 @@ Both tasks start PowerShell through `conhost.exe --headless`, so no window appea
 | `HpBios.ps1` | Helper functions that send commands to the HP BIOS over WMI. |
 | `Kur.cmd` / `Kur.ps1` | Installs OmenAuto (creates the two scheduled tasks). |
 | `Kaldir.cmd` | Stops OmenAuto and the icon, and removes the scheduled tasks. |
+| `CpuBoost-Ac.cmd` / `CpuBoost-Kapat.cmd` | Turns the optional CPU boost on / off. |
 | `Yeniden-Baslat.cmd` | Restarts OmenAuto after you change a setting. |
 | `Durum.cmd` / `Durum.ps1` | Read-only sensor test. Writes temperatures, fan speeds and GPU power to `Durum.txt`. |
 
@@ -51,7 +53,7 @@ Everything OmenAuto does is written to `OmenAuto.log` in the same folder.
 
 ## Status icon
 
-After installation a small dot appears next to the clock (if you don't see it, click the `^` arrow and drag it next to the clock):
+After installation a small coloured dot appears next to the clock, with the GPU temperature (°C) written inside it (if you don't see it, click the `^` arrow and drag it next to the clock):
 
 | Colour | Meaning |
 |---|---|
@@ -59,9 +61,9 @@ After installation a small dot appears next to the clock (if you don't see it, c
 | Red | Performance mode (a game is running) |
 | Grey | OmenAuto is not running, or the status is unknown |
 
-Hover over the dot to see the mode, the game name and since when. Right-click it to open the log, restart OmenAuto or close the icon. Double-click opens the log.
+Hover over the dot to see the mode, the GPU temperature, the game name and since when. Right-click it to open the log, restart OmenAuto or close the icon. Double-click opens the log.
 
-The icon reads the last `Profil:` line in `OmenAuto.log` every 3 seconds. After a game opens, it can take about 10 seconds to turn red, because it shows the mode that has really been applied, not a guess.
+The icon reads the last `Profil:` line in `OmenAuto.log` every 3 seconds, and the GPU temperature (with `nvidia-smi`) every 10 seconds. Only the GPU temperature is shown: the CPU temperature cannot be read reliably without administrator rights. After a game opens, it can take about 10 seconds to turn red, because it shows the mode that has really been applied, not a guess.
 
 ## Settings
 
@@ -77,6 +79,16 @@ Open `OmenAuto.ps1` in a text editor. The settings are at the top:
 | `$ModeValue` | Quiet = `3`, Performance = `1` | BIOS fan mode values. These were measured on a Victus 16; check yours first (see below). |
 
 After changing anything, run **`Yeniden-Baslat.cmd`**.
+
+### Optional CPU boost
+
+Off by default. Double-click **`CpuBoost-Ac.cmd`** to turn it on, and **`CpuBoost-Kapat.cmd`** to turn it off. While a game runs it changes three Windows power plan settings (only the values used when the charger is plugged in):
+
+- Processor performance boost mode → Aggressive
+- Minimum processor state → 100%
+- Core parking → off (all cores stay awake)
+
+The first time it runs, OmenAuto saves your current values to `CpuNormal.txt` and puts them back when the game closes. These are standard Windows settings, so they work on Intel and AMD CPUs, but the result depends on your laptop: the CPU runs hotter, and the fans get louder.
 
 ### Checking the mode values on your laptop
 
@@ -106,8 +118,9 @@ HP Victus / OMEN laptoplar için Windows'ta otomatik performans ve fan kontrolü
 - **Oyun yokken:** Quiet modu, fanlar otomatik, ekran kartı normal güçte.
 - **Oyun açıkken:** Performance modu ve ekran kartı maksimum güçte (Custom TGP + AI Boost).
 - **Oyunda akıllı fan:** Ekran kartı 80 °C'ye ulaşınca fanlar tam hıza çıkar, 72 °C'nin altına inince otomatiğe döner.
+- **Oyunda isteğe bağlı işlemci hızlandırma** (varsayılan olarak kapalı): Oyun açıkken işlemciyi tam hızda tutan Windows güç planı ayarlarını açar.
 - Oyun açılınca ya da kapanınca yaklaşık 5 saniye içinde geçiş yapar.
-- **Saatin yanında durum simgesi:** mavi = Quiet, kırmızı = Performance, gri = OmenAuto çalışmıyor. Üstüne gelince mod ve oyun adı görünür.
+- **Saatin yanında durum simgesi:** Renkli bir yuvarlağın içinde ekran kartının sıcaklığını gösterir (mavi = Quiet, kırmızı = Performance, gri = OmenAuto çalışmıyor). Üstüne gelince mod ve oyun adı görünür.
 - Tamamen gizli çalışır: görev çubuğunda ya da Alt+Tab'da PowerShell penceresi görünmez.
 
 OmenAuto laptopun BIOS'una Windows'un kendi WMI arayüzüyle bağlanır (OMEN Gaming Hub'ın kullandığı yolun aynısı). Çekirdek sürücüsü **yüklemez**, oyunun belleğine dokunmaz ve ekrana bir şey çizmez.
@@ -145,6 +158,7 @@ Ayrıca saatin yanındaki durum simgesini gösteren **OmenAutoTray** adında iki
 | `HpBios.ps1` | HP BIOS'una WMI üzerinden komut gönderen yardımcı fonksiyonlar. |
 | `Kur.cmd` / `Kur.ps1` | OmenAuto'yu kurar (iki zamanlanmış görevi oluşturur). |
 | `Kaldir.cmd` | OmenAuto'yu ve simgeyi durdurur, zamanlanmış görevleri siler. |
+| `CpuBoost-Ac.cmd` / `CpuBoost-Kapat.cmd` | İsteğe bağlı işlemci hızlandırmayı açar / kapatır. |
 | `Yeniden-Baslat.cmd` | Bir ayarı değiştirdikten sonra OmenAuto'yu yeniden başlatır. |
 | `Durum.cmd` / `Durum.ps1` | Sadece okuma yapan sensör testi. Sıcaklıkları, fan hızlarını ve ekran kartı gücünü `Durum.txt`'ye yazar. |
 
@@ -152,7 +166,7 @@ OmenAuto'nun yaptığı her şey aynı klasördeki `OmenAuto.log` dosyasına yaz
 
 ## Durum simgesi
 
-Kurulumdan sonra saatin yanında küçük bir nokta çıkar (görmüyorsan `^` okuna tıkla ve noktayı saatin yanına sürükle):
+Kurulumdan sonra saatin yanında, içinde ekran kartı sıcaklığı (°C) yazan küçük renkli bir nokta çıkar (görmüyorsan `^` okuna tıkla ve noktayı saatin yanına sürükle):
 
 | Renk | Anlamı |
 |---|---|
@@ -160,9 +174,9 @@ Kurulumdan sonra saatin yanında küçük bir nokta çıkar (görmüyorsan `^` o
 | Kırmızı | Performance modu (oyun açık) |
 | Gri | OmenAuto çalışmıyor ya da durum bilinmiyor |
 
-Noktanın üstüne gelince mod, oyunun adı ve hangi saatten beri o modda olduğu görünür. Sağ tıklayınca günlüğü açabilir, OmenAuto'yu yeniden başlatabilir ya da simgeyi kapatabilirsin. Çift tıklama günlüğü açar.
+Noktanın üstüne gelince mod, ekran kartı sıcaklığı, oyunun adı ve hangi saatten beri o modda olduğu görünür. Sağ tıklayınca günlüğü açabilir, OmenAuto'yu yeniden başlatabilir ya da simgeyi kapatabilirsin. Çift tıklama günlüğü açar.
 
-Simge her 3 saniyede bir `OmenAuto.log` içindeki son `Profil:` satırını okur. Oyun açıldıktan sonra kırmızıya dönmesi 10 saniye kadar sürebilir, çünkü tahmin değil, gerçekten uygulanmış modu gösterir.
+Simge her 3 saniyede bir `OmenAuto.log` içindeki son `Profil:` satırını, her 10 saniyede bir de ekran kartı sıcaklığını (`nvidia-smi` ile) okur. Sadece ekran kartı sıcaklığı gösterilir, çünkü işlemci sıcaklığı yönetici yetkisi olmadan güvenilir şekilde okunamıyor. Oyun açıldıktan sonra kırmızıya dönmesi 10 saniye kadar sürebilir, çünkü tahmin değil, gerçekten uygulanmış modu gösterir.
 
 ## Ayarlar
 
@@ -178,6 +192,16 @@ Simge her 3 saniyede bir `OmenAuto.log` içindeki son `Profil:` satırını okur
 | `$ModeValue` | Quiet = `3`, Performance = `1` | BIOS fan modu değerleri. Bir Victus 16'da ölçüldü, kendi laptopunda önce kontrol et (aşağıya bak). |
 
 Bir şeyi değiştirdikten sonra **`Yeniden-Baslat.cmd`**'yi çalıştır.
+
+### İsteğe bağlı işlemci hızlandırma
+
+Varsayılan olarak kapalıdır. Açmak için **`CpuBoost-Ac.cmd`**'ye, kapatmak için **`CpuBoost-Kapat.cmd`**'ye çift tıkla. Oyun açıkken Windows güç planındaki üç ayarı değiştirir (sadece şarj takılıyken kullanılan değerleri):
+
+- İşlemci performans artırma modu → Agresif
+- En düşük işlemci durumu → %100
+- Çekirdek park etme → kapalı (tüm çekirdekler uyanık kalır)
+
+OmenAuto ilk çalıştığında mevcut değerlerini `CpuNormal.txt` dosyasına kaydeder ve oyun kapanınca onları geri yükler. Bunlar standart Windows ayarları olduğu için Intel ve AMD işlemcilerde çalışır, ama sonuç laptopuna göre değişir: İşlemci daha çok ısınır, fanlar daha yüksek sesle çalışır.
 
 ### Kendi laptopunda mod değerlerini kontrol etme
 

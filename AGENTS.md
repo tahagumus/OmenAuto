@@ -8,6 +8,7 @@ OmenAuto is a small set of Windows PowerShell and batch scripts that run in the 
 
 - **No game running:** Quiet fan mode, GPU at normal power, fans on auto.
 - **Game running:** Performance fan mode, maximum GPU power (Custom TGP + AI Boost), and full-speed fans when the NVIDIA GPU reaches `$FanOnTemp` (back to auto below `$FanOffTemp`).
+- **Optional CPU boost (off by default):** while a game runs, three Windows power plan AC values (`PERFBOOSTMODE`, `PROCTHROTTLEMIN`, `CPMINCORES`) are changed with `powercfg` and restored from `CpuNormal.txt` afterwards.
 
 It talks to the laptop BIOS directly through HP's WMI interface (`root\wmi`, class `hpqBIntM`). It does **not** need OMEN Gaming Hub, and it must **never** need a kernel driver.
 
@@ -16,11 +17,12 @@ It talks to the laptop BIOS directly through HP's WMI interface (`root\wmi`, cla
 | File | Role |
 |---|---|
 | `OmenAuto.ps1` | Main watcher loop. Detects games, applies profiles, controls fans, re-applies after sleep. All user settings are at the top of this file. |
-| `OmenTray.ps1` | Notification-area (tray) status icon. Read-only, runs without admin rights. Parses the last `Profil:` line of `OmenAuto.log` and checks the `Global\OmenAutoWatcher` mutex to see whether the watcher is alive. |
+| `OmenTray.ps1` | Notification-area (tray) status icon. Read-only, runs without admin rights. Parses the last `Profil:` line of `OmenAuto.log`, checks the `Global\OmenAutoWatcher` mutex to see whether the watcher is alive, and draws the GPU temperature (`nvidia-smi`, every 10 s) inside the icon. |
 | `HpBios.ps1` | Thin wrapper around the HP WMI BIOS call (`Invoke-HpBios`) plus small read/write helpers. Dot-sourced by the other scripts. |
 | `Kur.cmd` / `Kur.ps1` | Installer. Registers the `OmenAuto` scheduled task (at logon + on wake from sleep, highest privileges, auto-restart) and the `OmenAutoTray` task (at logon, limited rights). |
 | `Kaldir.cmd` | Uninstaller. Removes both scheduled tasks and stops the watcher and the icon. |
 | `Yeniden-Baslat.cmd` | Restarts the watcher after a settings change. |
+| `CpuBoost-Ac.cmd` / `CpuBoost-Kapat.cmd` | Turn the optional CPU boost on / off (write `1` / `0` to `CpuBoost.txt`, then restart the watcher). |
 | `Durum.cmd` / `Durum.ps1` | Read-only sensor test. Writes temperatures, fan levels and GPU power to `Durum.txt`. |
 | `README.md` | User documentation, English first and then Turkish. |
 | `LICENSE` | GPL-3.0. |
@@ -76,7 +78,8 @@ Other models (especially thermal policy version 1) may need different values. Do
 9. **The log format is an interface.** `OmenTray.ps1` parses `yyyy-MM-dd HH:mm:ss  Profil: <Quiet|Performance> ...` and `Oyun algilandi: <process name>`. If you change these log lines in `OmenAuto.ps1`, update the parser in `OmenTray.ps1` in the same commit.
 10. **No visible windows.** Scheduled tasks start PowerShell as `conhost.exe --headless powershell.exe ... -WindowStyle Hidden`. Plain `powershell.exe -WindowStyle Hidden` leaves an empty window in Alt+Tab when Windows Terminal is the default terminal on Windows 11, so do not go back to it.
 11. **The tray icon stays read-only and unelevated.** It must never send BIOS commands or need administrator rights. Restarting the watcher goes through `Yeniden-Baslat.cmd`, which asks for elevation itself. A tray icon is not an overlay: it lives in the taskbar, never on top of a game.
-12. **Never commit runtime files:** `*.log`, `Durum.txt`, or any personal paths, user names or e-mail addresses.
+12. **CPU boost stays opt-in.** It is only applied when `CpuBoost.txt` contains `1`. With the boost off and no `CpuNormal.txt`, the watcher must not touch the power plan at all.
+13. **Never commit runtime files:** `*.log`, `Durum.txt`, `CpuBoost.txt`, `CpuNormal.txt`, or any personal paths, user names or e-mail addresses.
 
 ## Testing
 
