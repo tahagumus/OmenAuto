@@ -46,6 +46,7 @@ Both tasks start PowerShell through `conhost.exe --headless`, so no window appea
 | `Kur.cmd` / `Kur.ps1` | Installs OmenAuto (creates the two scheduled tasks). |
 | `Kaldir.cmd` | Stops OmenAuto and the icon, and removes the scheduled tasks. |
 | `CpuBoost-Ac.cmd` / `CpuBoost-Kapat.cmd` | Turns the optional CPU boost on / off. |
+| `FpsOlc.cmd` / `FpsOlc.ps1` | Measures FPS, CPU and GPU while a game runs (needs PresentMon, see below). Changes nothing. |
 | `Yeniden-Baslat.cmd` | Restarts OmenAuto after you change a setting. |
 | `Durum.cmd` / `Durum.ps1` | Read-only sensor test. Writes temperatures, fan speeds and GPU power to `Durum.txt`. |
 
@@ -95,6 +96,17 @@ The first time it runs, OmenAuto saves your current values to `CpuNormal.txt` an
 ### Checking the mode values on your laptop
 
 The values above were measured on one laptop. On newer models (Thermal Policy Version 1) they may be different. Run `Durum.cmd` and look at the `Thermal Policy Version` line in `Durum.txt`. If it is not `0`, test carefully before relying on the default values.
+
+## Measuring FPS
+
+`FpsOlc.cmd` measures FPS while you play, so you can compare settings (for example the CPU boost on and off) with numbers instead of guesses. It changes no settings.
+
+1. Download the console version of [PresentMon](https://github.com/GameTechDev/PresentMon/releases) (Intel, MIT license, for example `PresentMon-2.6.0-x64.exe`) and put it in the OmenAuto folder. It is not included here. PresentMon does not touch the game: it reads the frame events Windows already records (ETW).
+2. Start the game and wait until OmenAuto has switched to Performance.
+3. Double-click **`FpsOlc.cmd`**, accept the administrator prompt and go straight back to the game. After 20 seconds it measures for 15 seconds.
+4. The result is written to `FpsOlc-<date>.txt`: average FPS, 1% and 0.1% lows, CPU and GPU readings, and whether the CPU or the GPU limits your FPS.
+
+To compare two settings, measure in the same place both times (for example the same spot in a practice range): FPS changes a lot from scene to scene.
 
 ## Uninstall
 
@@ -161,6 +173,7 @@ Ayrıca saatin yanındaki durum simgesini gösteren **OmenAutoTray** adında iki
 | `Kur.cmd` / `Kur.ps1` | OmenAuto'yu kurar (iki zamanlanmış görevi oluşturur). |
 | `Kaldir.cmd` | OmenAuto'yu ve simgeyi durdurur, zamanlanmış görevleri siler. |
 | `CpuBoost-Ac.cmd` / `CpuBoost-Kapat.cmd` | İsteğe bağlı işlemci hızlandırmayı açar / kapatır. |
+| `FpsOlc.cmd` / `FpsOlc.ps1` | Oyun açıkken FPS'i, işlemciyi ve ekran kartını ölçer (PresentMon gerekir, aşağıya bak). Hiçbir ayarı değiştirmez. |
 | `Yeniden-Baslat.cmd` | Bir ayarı değiştirdikten sonra OmenAuto'yu yeniden başlatır. |
 | `Durum.cmd` / `Durum.ps1` | Sadece okuma yapan sensör testi. Sıcaklıkları, fan hızlarını ve ekran kartı gücünü `Durum.txt`'ye yazar. |
 
@@ -210,6 +223,17 @@ OmenAuto ilk çalıştığında mevcut değerlerini `CpuNormal.txt` dosyasına k
 ### Kendi laptopunda mod değerlerini kontrol etme
 
 Yukarıdaki değerler tek bir laptopta ölçüldü. Yeni modellerde (Thermal Policy Version 1) farklı olabilirler. `Durum.cmd`'yi çalıştır ve `Durum.txt`'deki `Thermal Policy Version` satırına bak. `0` değilse, varsayılan değerlere güvenmeden önce dikkatlice test et.
+
+## FPS ölçümü
+
+`FpsOlc.cmd` oyun sırasında FPS'i ölçer. Böylece ayarları (örneğin işlemci hızlandırmanın açık ve kapalı halini) tahminle değil, sayılarla karşılaştırabilirsin. Hiçbir ayarı değiştirmez.
+
+1. [PresentMon](https://github.com/GameTechDev/PresentMon/releases)'un konsol sürümünü indir (Intel, MIT lisansı, örneğin `PresentMon-2.6.0-x64.exe`) ve OmenAuto klasörüne koy. Bu depoda yer almaz. PresentMon oyuna dokunmaz: Windows'un zaten tuttuğu kare kayıtlarını (ETW) okur.
+2. Oyunu aç ve OmenAuto'nun Performance moduna geçmesini bekle.
+3. **`FpsOlc.cmd`**'ye çift tıkla, yönetici izni penceresinde **Evet** de ve hemen oyuna dön. 20 saniye sonra 15 saniye boyunca ölçer.
+4. Sonuç `FpsOlc-<tarih>.txt` dosyasına yazılır: Ortalama FPS, en kötü %1 ve %0,1 FPS, işlemci ve ekran kartı değerleri ve FPS'i işlemcinin mi ekran kartının mı belirlediği.
+
+İki ayarı karşılaştırırken iki ölçümü de aynı yerde yap (örneğin antrenman alanında aynı nokta). FPS sahneden sahneye çok değişir.
 
 ## Kaldırma
 

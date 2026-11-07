@@ -23,6 +23,7 @@ It talks to the laptop BIOS directly through HP's WMI interface (`root\wmi`, cla
 | `Kaldir.cmd` | Uninstaller. Removes both scheduled tasks and stops the watcher and the icon. |
 | `Yeniden-Baslat.cmd` | Restarts the watcher after a settings change. |
 | `CpuBoost-Ac.cmd` / `CpuBoost-Kapat.cmd` | Turn the optional CPU boost on / off (write `1` / `0` to `CpuBoost.txt`, then restart the watcher). |
+| `FpsOlc.cmd` / `FpsOlc.ps1` | FPS measurement while a game runs. Elevated (ETW needs it), changes nothing. Uses a user-supplied `PresentMon*.exe` in the folder; PresentMon is never committed. Writes `FpsOlc-<date>.txt`. |
 | `Durum.cmd` / `Durum.ps1` | Read-only sensor test. Writes temperatures, fan levels and GPU power to `Durum.txt`. |
 | `README.md` | User documentation, English first and then Turkish. |
 | `LICENSE` | GPL-3.0. |
@@ -91,6 +92,7 @@ There is no automated test suite. The scripts can only run on real HP hardware w
   ```
 - **On the laptop:** run `Durum.cmd` (read-only) to confirm sensor and BIOS reads, then `Yeniden-Baslat.cmd`, and check `OmenAuto.log` for `Profil: ... (mod kodu 0, gpu kodu 0)`.
 - **Tray icon:** after `Kur.cmd`, check that no "Administrator" window is listed in Alt+Tab and that the dot next to the clock is blue (red while a game runs, grey after `Kaldir.cmd` or when the watcher is stopped).
+- **Performance claims need numbers.** Before saying a setting raises or lowers FPS, measure it with `FpsOlc.cmd` in the same scene with the setting on and off.
 - When you cannot run on hardware, say so clearly in the pull request and list what still needs a manual check.
 
 ## Making changes

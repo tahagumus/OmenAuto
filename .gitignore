@@ -3,3 +3,6 @@ Durum.txt
 # Bilgisayara ozel durum dosyalari
 CpuBoost.txt
 CpuNormal.txt
+# FPS olcumu: sonuclar ve PresentMon (ayri indirilir)
+FpsOlc-*.txt
+PresentMon*.exe
