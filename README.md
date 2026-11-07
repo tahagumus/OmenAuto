@@ -90,7 +90,7 @@ Off by default. Double-click **`CpuBoost-Ac.cmd`** to turn it on, and **`CpuBoos
 
 The first time it runs, OmenAuto saves your current values to `CpuNormal.txt` and puts them back when the game closes. These are standard Windows settings, so they work on Intel and AMD CPUs, but the result depends on your laptop: the CPU runs hotter, and the fans get louder.
 
-> ⚠️ **It can lower your FPS.** On the reference laptop (i7-12700H) the boost *reduced* FPS in VALORANT: keeping every core at full speed uses up the laptop's power and heat budget, so the cores the game really needs boost less. Measure your FPS with the boost on and off before keeping it.
+> **Measured on the reference laptop** (i7-12700H, RTX 3050 Ti, VALORANT, same spot, 15 s with [PresentMon](https://github.com/GameTechDev/PresentMon)): boost off → 318 FPS average, 162 FPS 0.1% low; boost on → 324 FPS average, 193 FPS 0.1% low. The average barely changes, but the worst frames get better. Results depend on the laptop, so measure your own before keeping it.
 
 ### Checking the mode values on your laptop
 
@@ -205,7 +205,7 @@ Varsayılan olarak kapalıdır. Açmak için **`CpuBoost-Ac.cmd`**'ye, kapatmak 
 
 OmenAuto ilk çalıştığında mevcut değerlerini `CpuNormal.txt` dosyasına kaydeder ve oyun kapanınca onları geri yükler. Bunlar standart Windows ayarları olduğu için Intel ve AMD işlemcilerde çalışır, ama sonuç laptopuna göre değişir: İşlemci daha çok ısınır, fanlar daha yüksek sesle çalışır.
 
-> ⚠️ **FPS'ini düşürebilir.** Test edilen laptopta (i7-12700H) hızlandırma VALORANT'ta FPS'i *düşürdü*: Tüm çekirdekleri tam hızda tutmak laptopun güç ve ısı bütçesini harcıyor, bu yüzden oyunun asıl kullandığı çekirdekler daha az hızlanıyor. Açık bırakmadan önce FPS'ini hızlandırma açıkken ve kapalıyken ölç.
+> **Test edilen laptopta ölçüldü** (i7-12700H, RTX 3050 Ti, VALORANT, aynı nokta, [PresentMon](https://github.com/GameTechDev/PresentMon) ile 15 sn): Hızlandırma kapalıyken ortalama 318 FPS, en kötü %0,1 162 FPS; açıkken ortalama 324 FPS, en kötü %0,1 193 FPS. Ortalama neredeyse aynı kalıyor ama en kötü kareler iyileşiyor. Sonuç laptoba göre değişir, açık bırakmadan önce kendin ölç.
 
 ### Kendi laptopunda mod değerlerini kontrol etme
 
